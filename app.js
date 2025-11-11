@@ -6,13 +6,15 @@ const app = express();
 
 // for logger (if request is successfull or not)
 const morgan = require('morgan');
-
-// db
-const connectDB = require('./db/connect');
-
 // security
 const helmet = require('helmet');
 const cors = require('cors');
+
+// database
+const connectDB = require('./db/connect');
+
+// routers
+const authRouter = require('./routes/authRoutes');
 
 // middleware folder
 const notFoundMiddleware = require('./middleware/not-found');
@@ -23,18 +25,19 @@ app.use(express.json());
 app.use(helmet());
 app.use(cors());
 
-// for testing
 app.get('/', (req, res) => {
-  res.send('E-Commerce API!');
+  res.send('e-commerce api');
 });
 
+app.use('/api/v1/auth', authRouter);
+
+
+// middleware for routes
 app.use(notFoundMiddleware);
 app.use(errorHandlerMiddleware);
 
-// middleware for routes
 
-
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 5000;
 
 const start = async () => {
   try {
