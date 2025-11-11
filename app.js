@@ -4,6 +4,9 @@ require('dotenv').config(); // processing .env
 const express = require('express');
 const app = express();
 
+// for logger (if request is successfull or not)
+const morgan = require('morgan');
+
 // db
 const connectDB = require('./db/connect');
 
@@ -15,6 +18,7 @@ const cors = require('cors');
 const notFoundMiddleware = require('./middleware/not-found');
 const errorHandlerMiddleware = require('./middleware/error-handler');
 
+app.use(morgan('tiny'));
 app.use(express.json());
 app.use(helmet());
 app.use(cors());
