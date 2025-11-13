@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const validator = require('validator');
+const bcrypt = require('bcryptjs');
 
 const UserSchema = new mongoose.Schema({
   name: {
@@ -11,6 +12,7 @@ const UserSchema = new mongoose.Schema({
   email: {
     type: String,
     required: [true, 'Please provide email'],
+    unique: true,
     validate: {
       validator: validator.isEmail,
       message: 'please provide valid email' // if validator is returns false
@@ -28,5 +30,18 @@ const UserSchema = new mongoose.Schema({
     default: 'user'
   },
 });
+
+// This is a middleware that hash the password before saving the file
+UserSchema.pre('save', async function() {
+  // Generate salt, then hash it.
+  const salt = await bcrypt.genSalt(10); // 10 rounds
+  this.password = await bcrypt.hash(this.password, salt);
+})
+
+UserSchema.methods.comparePassword = async function(candidatePassword) {
+  const isMatch = await bcrypt.compare(candidatePassword, this.password);
+
+  return isMatch;
+}
 
 module.exports = mongoose.model('users', UserSchema);
