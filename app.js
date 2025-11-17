@@ -6,6 +6,10 @@ const app = express();
 
 // for logger (if request is successfull or not)
 const morgan = require('morgan');
+
+// cookie parser
+const cookieParser = require('cookie-parser'); 
+
 // security
 const helmet = require('helmet');
 const cors = require('cors');
@@ -22,10 +26,17 @@ const errorHandlerMiddleware = require('./middleware/error-handler');
 
 app.use(morgan('tiny'));
 app.use(express.json());
+app.use(cookieParser(process.env.JWT_SECRET));
 app.use(helmet());
 app.use(cors());
 
 app.get('/', (req, res) => {
+  res.send('e-commerce api');
+});
+
+// test route
+app.get('/api/v1', (req, res) => {
+  console.log(req.signedCookies); // signed cookies
   res.send('e-commerce api');
 });
 
