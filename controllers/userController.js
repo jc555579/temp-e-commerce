@@ -1,6 +1,7 @@
 const User = require('../models/User');
 const { StatusCodes } = require('http-status-codes');
 const CustomError = require('../errors');
+const { createTokenUser, attachCookiesToResponse } = require('../utils');
 
 const getAllUsers = async (req, res) => {
   console.log(req.user);
@@ -26,16 +27,33 @@ const showCurrentUser = async (req, res) => {
 };
 
 const updateUser = async (req, res) => {
-  res.send('update user');
+  const { name, email } = req.body;
+
+  if (!name || !email) {
+    throw new CustomError.BadRequestError('Please provide all fields');
+  };
+
+  // Perform update query
+  const user = await User.findOne({ _id: req.user.userId });
+
+  user.email = email;
+  user.name = name;
+
+  await user.save();
+
+  // As the user updated, it is also need to change the token
+  const tokenUser = createTokenUser(user);
+  attachCookiesToResponse({ res, user: tokenUser });
+
+  res.status(StatusCodes.OK).json({ user: tokenUser });
 };
 
 const updateUserPassword = async (req, res) => {
   // Get the values
   const { oldPassword, newPassword } = req.body;
 
-  // checks if 
   if (!oldPassword || !newPassword) {
-    throw new CustomError.BadRequestError('Please provide required fields');
+    throw new CustomError.BadRequestError('Please provide all fields');
   }
 
   const user = await User.findOne({ _id: req.user.userId });
@@ -58,3 +76,26 @@ module.exports = {
   updateUser,
   updateUserPassword
 };
+
+/* Update user with findOneAndUpdate
+const updateUser = async (req, res) => {
+  const { name, email } = req.body;
+
+  if (!name || !email) {
+    throw new CustomError.BadRequestError('Please provide all fields');
+  };
+
+  // Perform update query
+  const user = await User.findOneAndUpdate(
+    { _id: req.user.userId }, 
+    { email, name }, 
+    { new: true, runValidators: true }
+  );
+
+  // As the user updated, it is also need to change the token
+  const tokenUser = createTokenUser(user);
+  attachCookiesToResponse({ res, user: tokenUser });
+
+  res.status(StatusCodes.OK).json({ user: tokenUser });
+};
+*/

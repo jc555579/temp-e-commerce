@@ -22,7 +22,7 @@ const UserSchema = new mongoose.Schema({
     type: String,
     required: [true, 'Please provide password'],
     minLength: 6,
-    maxLength: 50
+    maxLength: 70
   },
   role: {
     type: String,
@@ -33,6 +33,12 @@ const UserSchema = new mongoose.Schema({
 
 // This is a middleware that hash the password before saving the file
 UserSchema.pre('save', async function() {
+  // console.log(this.modifiedPaths()); 
+  console.log(this.isModified('password'));
+
+  // If the password is not modified, then this middleware is ignored
+  if (!this.isModified('password')) return;
+
   // Generate salt, then hash it.
   const salt = await bcrypt.genSalt(10); // 10 rounds
   this.password = await bcrypt.hash(this.password, salt);
