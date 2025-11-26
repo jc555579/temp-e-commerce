@@ -10,6 +10,9 @@ const morgan = require('morgan');
 // cookie parser
 const cookieParser = require('cookie-parser'); 
 
+// file upload
+const fileUpload = require('express-fileupload');
+
 // security
 const helmet = require('helmet');
 const cors = require('cors');
@@ -34,6 +37,9 @@ app.use(express.json());
 app.use(cookieParser(process.env.JWT_SECRET));
 app.use(helmet());
 app.use(cors());
+
+app.use(express.static('./public'));
+app.use(fileUpload());
 
 app.get('/', (req, res) => {
   res.send('e-commerce api');
