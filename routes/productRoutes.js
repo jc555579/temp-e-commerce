@@ -5,6 +5,7 @@ const router = express.Router();
 const {  createProduct, getAllProducts, 
   getSingleProduct, updateProduct, 
   deleteProduct, uploadImage } = require('../controllers/productController');
+const { getSingleProductReviews } = require('../controllers/reviewController');
 
 // middleware
 const { authenticateUser, authorizePermissions } = require('../middleware/authentication');
@@ -20,5 +21,7 @@ router.route('/:id')
   .delete(authenticateUser, authorizePermissions('admin'), deleteProduct);
 
 router.route('/uploadImage').post(authenticateUser, uploadImage);
+
+router.route('/:id/reviews').get(getSingleProductReviews);
 
 module.exports = router;
