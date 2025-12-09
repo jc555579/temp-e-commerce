@@ -14,8 +14,12 @@ const cookieParser = require('cookie-parser');
 const fileUpload = require('express-fileupload');
 
 // security
+const rateLimiter = require('express-rate-limit');
+const { xss } = require('express-xss-sanitizer');
 const helmet = require('helmet');
 const cors = require('cors');
+const mongoSanitize = require('express-mongo-sanitize');
+
 
 // database
 const connectDB = require('./db/connect');
@@ -31,15 +35,25 @@ const orderRouter = require('./routes/orderRoutes');
 const notFoundMiddleware = require('./middleware/not-found');
 const errorHandlerMiddleware = require('./middleware/error-handler');
 
+// security
+app.set('trust proxy', 1);
+app.use(
+  rateLimiter({
+    windowMs: 15 * 60 * 1000, // 15 mins
+    max: 60,
+  })
+);
+app.use(helmet());
+app.use(cors());
+app.use(xss());
+app.use('/api', mongoSanitize()); // avoids to read /public which includes docgen 
+
 // logger (for development)
 app.use(morgan('tiny'));
 
-// security
+// parsing, file upload & others
 app.use(express.json());
 app.use(cookieParser(process.env.JWT_SECRET));
-app.use(helmet());
-app.use(cors());
-
 app.use(express.static('./public'));
 app.use(fileUpload());
 
@@ -61,10 +75,9 @@ app.use('/api/v1/reviews', reviewRouter);
 app.use ('/api/v1/orders', orderRouter);
 
 
-// middleware for routes
+// if routes is not found
 app.use(notFoundMiddleware);
 app.use(errorHandlerMiddleware);
-
 
 const PORT = process.env.PORT || 5000;
 
